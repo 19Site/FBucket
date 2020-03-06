@@ -44,11 +44,11 @@ Parameters:
 	-	portHttp - (number) port number for HTTP (default: 60080)
 	- 	portHttps - (number) port number for HTTPS (default: 60443)
 	-	enableHttps - (boolean) is enable HTTPS server (default: true)
-	-	sslKeyFile - (String) path to ssl key file (for HTTPS server) (default: path to a self-signed key)
-	-	sslCertFile - (String) path to ssl cert file (for HTTPS server) (default: path to a self-signed cert)
-	-	assetUrl - (String) a url that prepend to uploaded file (default: www.example.com)
-	-	localDirectory - (String) a directory to store uploaded files
-	-	apiKey - (String) a api key to prevent anonymous upload
+	-	sslKeyFile - (string) path to ssl key file (for HTTPS server) (default: path to a self-signed key)
+	-	sslCertFile - (string) path to ssl cert file (for HTTPS server) (default: path to a self-signed cert)
+	-	assetUrl - (string) a url that prepend to uploaded file (default: www.example.com)
+	-	localDirectory - (string) a local path of a directory to store uploaded files
+	-	apiKey - (string) a api key to prevent anonymous upload
 
 ### FileBucket.upload(options, callback)
 
