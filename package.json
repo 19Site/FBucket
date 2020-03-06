@@ -1,5 +1,5 @@
 {
-	"name": "File-Bucket",
+	"name": "file-bucket",
 	"version": "1.0.0",
 	"description": "A Node.js file server and api to help you manage your file assets.",
 	"main": "app.js",
