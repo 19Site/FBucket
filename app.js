@@ -36,6 +36,8 @@ const Mime = require('mime-types');
 
 const FormData = require('form-data');
 
+const Url = require('url');
+
 const App = new Koa();
 
 const Router = new KoaRouter();
@@ -43,7 +45,7 @@ const Router = new KoaRouter();
 /**
  * start server
  */
-const start = async (config) => {
+const start = async config => {
 
 	// check config
 	config = config || {};
@@ -66,8 +68,17 @@ const start = async (config) => {
 		sslCertFile: typeof config.sslCertFile === 'string' ? config.sslCertFile : Path.join(__dirname, 'ssl', 'www.example.com.cert'),
 
 		// asset url (public domain / IP)
-		assetUrl: typeof config.assetUrl === 'string' ? config.assetUrl : 'http://www.example.com:60080'
+		assetUrl: typeof config.assetUrl === 'string' ? config.assetUrl : 'http://www.example.com:60080',
+
+		// local directory
+		localDirectory: typeof config.localDirectory === 'string' ? config.localDirectory : Path.join(__dirname, 'public', 'files'),
+
+		// key for api protection
+		apiKey: typeof config.apiKey === 'string' ? config.apiKey : undefined
 	};
+
+	// check local file path is exists
+	Fs.accessSync(config.localDirectory);
 
 	/**
 	 * testing link
@@ -88,8 +99,21 @@ const start = async (config) => {
 
 		try {
 
+			// fields
+			var fields = ctx.request.body;
+
 			// uploaded files
 			var files = ctx.request.files;
+
+			// check api key
+			if (typeof config.apiKey !== 'undefined' && config.apiKey !== fields.key) {
+
+				// invalid api key
+				throw new Error('invalid api key');
+			}
+
+			// asset url
+			var assetUrl = config.assetUrl.replace(/\/*$/, '');
 
 			// files container
 			var filesContainer = [];
@@ -164,7 +188,7 @@ const start = async (config) => {
 				var uploadFileName = name + '.' + Mime.extension(fileObject.type);
 
 				// upload base path
-				var basePath = Path.join(__dirname, 'public', 'files');
+				var basePath = config.localDirectory;
 
 				// upload path
 				var filePath = basePath;
@@ -224,14 +248,17 @@ const start = async (config) => {
 					})
 				}
 
+				// file url
+				var url = new Url.URL(assetUrl + filePath.replace(basePath, '')).toString();
+
 				// rewrite data
 				filesContainer[i] = {
 
 					...filesContainer[i],
 
-					url: config.assetUrl + filePath.replace(basePath, ''),
+					path: url.replace(assetUrl, ''),
 
-					path: filePath.replace(basePath, ''),
+					url: url,
 
 					originalName: filesContainer[i].name,
 
@@ -279,164 +306,191 @@ const start = async (config) => {
 	}));
 
 	// use router
-	App.use(KoaStatic(Path.join(__dirname, 'public', 'files')));
+	App.use(KoaStatic(config.localDirectory));
 
 	// add router
 	App.use(Router.routes()).use(Router.allowedMethods());
 
-	// start server (HTTP)
-	Http.createServer(App.callback()).listen(config.portHttp, () => {
+	// jobs
+	var jobs = [];
 
-		console.log('HTTP server started at port ' + config.portHttp);
+	// start http server
+	jobs.push(next => {
+
+		// start server (HTTP)
+		Http.createServer(App.callback()).listen(config.portHttp, () => {
+
+			console.log('HTTP server started at port ' + config.portHttp);
+
+			return next(undefined);
+		});
 	});
 
 	// enable https
 	if (config.enableHttps) {
 
-		// https options
-		var httpsOptions = {
+		// start https server
+		jobs.push(next => {
 
-			key: Fs.readFileSync(config.sslKeyFile),
+			// https options
+			var httpsOptions = {
 
-			cert: Fs.readFileSync(config.sslCertFile)
-		};
+				key: Fs.readFileSync(config.sslKeyFile),
 
-		// start server (HTTPS)
-		Https.createServer(httpsOptions, App.callback()).listen(config.portHttps, () => {
+				cert: Fs.readFileSync(config.sslCertFile)
+			};
 
-			console.log('HTTPS server started at port ' + config.portHttps);
+			// start server (HTTPS)
+			Https.createServer(httpsOptions, App.callback()).listen(config.portHttps, () => {
+
+				console.log('HTTPS server started at port ' + config.portHttps);
+
+				return next(undefined);
+			});
 		});
 	}
+
+	// return promise
+	return new Promise((resolve, reject) => {
+
+		// do job
+		Async.waterfall(jobs, err => {
+
+			if (err) {
+
+				return reject(err);
+			} else {
+
+				return resolve(err);
+			}
+		});
+	});
 };
 
 /**
  * send file to file api server
  */
-const upload = async (serverUrl, paths, callback) => {
+const upload = async (options, callback) => {
 
-	/**
-	 * send success
-	 */
-	var sendSuccess = (data, resolve) => {
+	// check input
+	options = options || {};
 
-		if (typeof callback === 'function') {
+	options = {
 
-			return callback(undefined, data);
-		} else {
+		serverUrl: typeof options.serverUrl === 'string' ? options.serverUrl : undefined,
 
-			return resolve(data);
-		}
-	}
+		files: typeof options.files === 'string' ? [options.files] : (Array.isArray(options.files) ? options.files : undefined),
 
-	/**
-	 * send 
-	 */
-	var sendError = (error, reject) => {
+		key: typeof options.key === 'string' ? options.key : undefined,
 
-		if (typeof callback === 'function') {
+		callback: typeof callback === 'function' ? callback : undefined
+	};
 
-			return callback(error);
-		} else {
+	// result
+	var result = {};
 
-			return reject(error);
-		}
-	}
+	// jobs
+	var jobs = [];
 
-	// create promise
-	return new Promise((resolve, reject) => {
+	// check input
+	jobs.push(next => {
 
-		// no server url
-		if (typeof serverUrl !== 'string') {
+		// server url
+		if (typeof options.serverUrl === 'undefined') {
 
-			// send error
-			return sendError(new Error('invalid server url'), reject);
+			return next(new Error('invalid server url'));
 		}
 
-		// invalid file paths
-		if (typeof paths !== 'string' && typeof paths !== 'object' && typeof paths.length !== 'number') {
+		// files
+		if (typeof options.files === 'undefined') {
 
-			// send error
-			return sendError(new Error('invalid file paths'), reject);
-		}
-
-		// paths is not an array
-		if (typeof paths === 'string') {
-
-			// to array
-			paths = [paths];
+			return next(new Error('invalid files'));
 		}
 
 		// check array (contain non string elements)
-		if (paths.filter(i => typeof i !== 'string').length > 0) {
+		if (options.files.filter(i => typeof i !== 'string').length > 0) {
 
-			// send error
-			return sendError(new Error('file paths contains non string elements'), reject);
+			return next(new Error('files contains non string elements'));
 		}
 
 		// trim last slash
-		serverUrl = serverUrl.replace(/\/*$/, '');
+		options.serverUrl = options.serverUrl.replace(/\/*$/, '');
 
-		// result
-		var result = {};
+		// do next
+		return next(undefined);
+	});
 
-		// jobs
+	// check files exists
+	jobs.push(next => {
+
 		var jobs = [];
+
+		// check each file
+		options.files.forEach(path => jobs.push(next => Fs.access(path, err => next(err))));
+
+		// do check
+		Async.waterfall(jobs, err => next(err));
+	});
+
+	// request to API
+	jobs.push(next => {
 
 		// form data
 		var formData = new FormData();
 
-		// loop all paths
-		paths.forEach(path => {
+		// add file to form data
+		options.files.forEach(path => formData.append('f', Fs.createReadStream(path)));
 
-			// check file is exists
-			jobs.push(next => Fs.access(path, err => next(err)));
-		});
+		// add api key to request
+		if (typeof options.key === 'string') {
 
-		// loop all paths
-		paths.forEach(path => {
+			formData.append('key', options.key);
+		}
 
-			// check file is exists
-			jobs.push(next => {
+		// request config
+		var requestConfig = {
 
-				// add file path
-				formData.append('f', Fs.createReadStream(path));
+			data: formData,
 
-				// next
-				return next(undefined);
-			});
-		});
+			method: 'POST',
 
-		// do upload
-		jobs.push(next => {
+			url: options.serverUrl + '/v1/do-upload',
 
-			// request config
-			var requestConfig = {
+			headers: {
 
-				data: formData,
+				...formData.getHeaders()
+			}
+		};
 
-				method: 'POST',
+		// call axios
+		return Axios(requestConfig)
 
-				url: serverUrl + '/v1/do-upload',
+			.then(data => {
 
-				headers: {
+				// save data
+				var resData = data.data;
 
-					...formData.getHeaders()
-				}
-			};
+				// request ok
+				if (resData.ok) {
 
-			// call axios
-			return Axios(requestConfig)
-
-				.then(data => {
-
-					// save data
+					// save result
 					result = data.data.data;
 
 					// do next
 					return next(undefined);
+				}
 
-				}, err => next(err))
-		});
+				// request failure
+				else {
+
+					return next(new Error(resData.error));
+				}
+
+			}, err => next(new Error(err.message)))
+	});
+
+	// create promise
+	return new Promise((resolve, reject) => {
 
 		// do job
 		Async.waterfall(jobs, err => {
@@ -444,13 +498,25 @@ const upload = async (serverUrl, paths, callback) => {
 			// error
 			if (err) {
 
-				return sendError(err, reject);
+				if (typeof options.callback === 'function') {
+
+					return options.callback(err);
+				} else {
+
+					return reject(err);
+				}
 			}
 
 			// success
 			else {
 
-				return sendSuccess(result, resolve);
+				if (typeof options.callback === 'function') {
+
+					return options.callback(undefined, result);
+				} else {
+
+					return resolve(result);
+				}
 			}
 		});
 	});
@@ -460,11 +526,7 @@ const upload = async (serverUrl, paths, callback) => {
 if (typeof module === 'object' && module.parent === null) {
 
 	// run server
-	start().then(() => {}).catch(err => {
-
-		// print error
-		console.error(err);
-	});
+	start().catch(err => console.error(err));
 }
 
 // export methods
