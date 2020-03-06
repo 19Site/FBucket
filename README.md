@@ -39,24 +39,35 @@ var config = {
 FileBucket.start(config);
 ```
 
-Config:  
--	portHttp - (number) port number for HTTP (default: 60080)
-- 	ortHttps - (number) port number for HTTPS (default: 60443)
--	enableHttps - (boolean) is enable HTTPS server (default: true)
--	sslKeyFile - (String) path to ssl key file (for HTTPS server) (default: path to a self-signed key)
--	sslCertFile - (String) path to ssl cert file (for HTTPS server) (default: path to a self-signed cert)
--	assetUrl - (String) a url that prepend to uploaded file (default: www.example.com)
+Parameters:
+-	config 
+	-	portHttp - (number) port number for HTTP (default: 60080)
+	- 	portHttps - (number) port number for HTTPS (default: 60443)
+	-	enableHttps - (boolean) is enable HTTPS server (default: true)
+	-	sslKeyFile - (String) path to ssl key file (for HTTPS server) (default: path to a self-signed key)
+	-	sslCertFile - (String) path to ssl cert file (for HTTPS server) (default: path to a self-signed cert)
+	-	assetUrl - (String) a url that prepend to uploaded file (default: www.example.com)
+	-	localDirectory - (String) a directory to store uploaded files
+	-	apiKey - (String) a api key to prevent anonymous upload
 
-### FileBucket.upload(serverUrl, files, callback)
+### FileBucket.upload(options, callback)
 
 API for upload file to FileBucket server.
 
 ```js
+// options
+var options = {
+
+	serverUrl: 'http://www.mydomain.com',
+
+	files: 'path_to_file.jpg'
+};
+
 // upload file (promise version)
-var data = await FileBucket.upload('https://www.mydomain.com', 'path_to_file.jpg');
+var data = await FileBucket.upload(options);
 
 // upload file (callback version)
-FileBucket.upload('https://www.mydomain.com', 'path_to_file.jpg', (err, data) => {
+FileBucket.upload(options, (err, data) => {
 	
 	// upload failure
 	if(err) {
@@ -73,8 +84,10 @@ FileBucket.upload('https://www.mydomain.com', 'path_to_file.jpg', (err, data) =>
 ```
 
 Parameters:
--	serverUrl - (string) the url of FileBucket server
--	files - (string|string[]) file path of upload file(s)
+-	options
+	-	serverUrl - (string) the url of FileBucket server
+	-	files - (string|string[]) file path of upload file(s)
+	-	key - (string) an api key for FileBucket server
 -	callback - (function) a callback function (no callback provided will consider as promise mode)
 	-	err - (object) a error object if error occure
 	-	data - (object) a data object if upload success
