@@ -1,22 +1,22 @@
-# File-Bucket
+# FBucket
 
 A Node.js file server and api to help you manage your file assets.
 
 ## Quickstart - Node.js
 
 ```sh
-npm install file-bucket
+npm install fbucket
 ```
 
 ## API
 
-Require FileBucket
+Require FBucket
 
 ```js
-const FileBucket = require('file-bucket');
+const FBucket = require('fbucket');
 ```
 
-### FileBucket.startServer(config)
+### FBucket.startServer(config)
 
 Start file bucket server.
 
@@ -36,7 +36,7 @@ var config = {
 };
 
 // start server
-FileBucket.startServer(config);
+FBucket.startServer(config);
 ```
 
 Parameters:
@@ -50,9 +50,9 @@ Parameters:
 	-	localDirectory - (string) a local path of a directory to store uploaded files
 	-	apiKey - (string) a api key to prevent anonymous upload
 
-### FileBucket.putFile(options, callback)
+### FBucket.putFile(options, callback)
 
-API for put file(s) to FileBucket server.
+API for put file(s) to FBucket server.
 
 ```js
 // options
@@ -64,10 +64,10 @@ var options = {
 };
 
 // put file (promise version)
-var data = await FileBucket.putFile(options);
+var data = await FBucket.putFile(options);
 
 // put file (callback version)
-FileBucket.putFile(options, (err, data) => {
+FBucket.putFile(options, (err, data) => {
 	
 	// action failure
 	if(err) {
@@ -85,9 +85,9 @@ FileBucket.putFile(options, (err, data) => {
 
 Parameters:
 -	options
-	-	serverUrl - (string) the url of FileBucket server
+	-	serverUrl - (string) the url of FBucket server
 	-	files - (string|string[]) file path of upload file(s)
-	-	key - (string) an api key for FileBucket server
+	-	key - (string) an api key for FBucket server
 -	callback - (function) a callback function (no callback provided will consider as promise mode)
 	-	err - (object) a error object if error occure
 	-	data - (object) a data object if upload success

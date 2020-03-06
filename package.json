@@ -1,5 +1,5 @@
 {
-	"name": "file-bucket",
+	"name": "fbucket",
 	"version": "0.0.1",
 	"description": "A Node.js file server and api to help you manage your file assets.",
 	"main": "app.js",
@@ -26,7 +26,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/19Site/File-Bucket.git"
+		"url": "git+https://github.com/19Site/FBucket.git"
 	},
 	"keywords": [
 		"file",
@@ -35,7 +35,7 @@
 	"author": "19Site",
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/19Site/File-Bucket/issues"
+		"url": "https://github.com/19Site/FBucket/issues"
 	},
-	"homepage": "https://github.com/19Site/File-Bucket#readme"
+	"homepage": "https://github.com/19Site/FBucket#readme"
 }

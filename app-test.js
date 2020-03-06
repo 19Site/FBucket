@@ -2,18 +2,18 @@
 
 const Path = require('path');
 
-const FileBucket = require('./app.js');
+const FBucket = require('./app.js');
 
 (async () => {
 
 	// start server
-	await FileBucket.startServer({
+	await FBucket.startServer({
 
 		apiKey: 'api-key'
 	});
 
 	// upload file
-	var data = await FileBucket.putFile({
+	var data = await FBucket.putFile({
 
 		serverUrl: 'http://localhost:60080',
 
