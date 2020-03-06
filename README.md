@@ -2,18 +2,26 @@
 
 A Node.js file server and api to help you manage your file assets.
 
-# Quickstart - Node.js
+## Quickstart - Node.js
 
 > npm install file-bucket
 
-# API
+## API
 
 Start file bucket server:
 
 ```js
 // require module
 const FileBucket = require('file-bucket');
+ 
+// server config
+var config = {};
 
 // start server
-FileBucket.start();
+FileBucket.start(config);
 ```
+
+Config detial:
+
+- portHttp - (number) port number for HTTP
+- portHttps - (number) port number for HTTPS
