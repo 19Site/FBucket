@@ -10,14 +10,17 @@ npm install file-bucket
 
 ## API
 
+Require FileBucket
+
+```js
+const FileBucket = require('file-bucket');
+```
+
 ### FileBucket.start(config)
 
 Start file bucket server.
 
 ```js
-// require module
-const FileBucket = require('file-bucket');
- 
 // server config
 var config = {
 
@@ -49,9 +52,6 @@ Config:
 API for upload file to FileBucket server.
 
 ```js
-// require module
-const FileBucket = require('file-bucket');
-
 // upload file (promise version)
 var data = await FileBucket.upload('https://www.mydomain.com', 'path_to_file.jpg');
 
