@@ -16,7 +16,7 @@ Require FileBucket
 const FileBucket = require('file-bucket');
 ```
 
-### FileBucket.start(config)
+### FileBucket.startServer(config)
 
 Start file bucket server.
 
@@ -36,7 +36,7 @@ var config = {
 };
 
 // start server
-FileBucket.start(config);
+FileBucket.startServer(config);
 ```
 
 Parameters:
@@ -50,9 +50,9 @@ Parameters:
 	-	localDirectory - (string) a local path of a directory to store uploaded files
 	-	apiKey - (string) a api key to prevent anonymous upload
 
-### FileBucket.upload(options, callback)
+### FileBucket.putFile(options, callback)
 
-API for upload file to FileBucket server.
+API for put file(s) to FileBucket server.
 
 ```js
 // options
@@ -63,19 +63,19 @@ var options = {
 	files: 'path_to_file.jpg'
 };
 
-// upload file (promise version)
-var data = await FileBucket.upload(options);
+// put file (promise version)
+var data = await FileBucket.putFile(options);
 
-// upload file (callback version)
-FileBucket.upload(options, (err, data) => {
+// put file (callback version)
+FileBucket.putFile(options, (err, data) => {
 	
-	// upload failure
+	// action failure
 	if(err) {
 	
 		return console.error(err);
 	} 
 	
-	// upload success
+	// action success
 	else {
 		
 		return console.dir(data);

@@ -7,13 +7,13 @@ const FileBucket = require('./app.js');
 (async () => {
 
 	// start server
-	await FileBucket.start({
+	await FileBucket.startServer({
 
 		apiKey: 'api-key'
 	});
 
 	// upload file
-	var data = await FileBucket.upload({
+	var data = await FileBucket.putFile({
 
 		serverUrl: 'http://localhost:60080',
 

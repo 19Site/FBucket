@@ -45,7 +45,7 @@ const Router = new KoaRouter();
 /**
  * start server
  */
-const start = async config => {
+const startServer = async config => {
 
 	// check config
 	config = config || {};
@@ -93,9 +93,9 @@ const start = async config => {
 	});
 
 	/**
-	 * do-upload
+	 * post files (create new file)
 	 */
-	Router.post('/v1/do-upload', async ctx => {
+	Router.post('/files', async ctx => {
 
 		try {
 
@@ -368,9 +368,9 @@ const start = async config => {
 };
 
 /**
- * send file to file api server
+ * put file to file api server
  */
-const upload = async (options, callback) => {
+const putFile = async (options, callback) => {
 
 	// check input
 	options = options || {};
@@ -454,7 +454,7 @@ const upload = async (options, callback) => {
 
 			method: 'POST',
 
-			url: options.serverUrl + '/v1/do-upload',
+			url: options.serverUrl + '/files',
 
 			headers: {
 
@@ -525,8 +525,8 @@ const upload = async (options, callback) => {
 // import module
 if (typeof module === 'object' && module.parent === null) {
 
-	// run server
-	start().catch(err => console.error(err));
+	// start server
+	startServer().catch(err => console.error(err));
 }
 
 // export methods
@@ -534,8 +534,8 @@ else if (typeof module === 'object') {
 
 	module.exports = {
 
-		start,
+		startServer,
 
-		upload
+		putFile
 	};
 }
