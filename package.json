@@ -19,9 +19,13 @@
 		"qs": "^6.9.1",
 		"zlib": "^1.0.5"
 	},
-	"devDependencies": {},
+	"devDependencies": {
+		"chai": "^4.2.0",
+		"mocha": "^7.1.0",
+		"supertest": "^4.0.2"
+	},
 	"scripts": {
-		"test": "node app-test.js",
+		"test": "mocha",
 		"start": "node app.js"
 	},
 	"repository": {

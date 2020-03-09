@@ -45,7 +45,7 @@ const Router = new KoaRouter();
 /**
  * start server
  */
-const startServer = async config => {
+const startServer = async (config, callback) => {
 
 	// check config
 	config = config || {};
@@ -74,8 +74,17 @@ const startServer = async config => {
 		localDirectory: typeof config.localDirectory === 'string' ? config.localDirectory : Path.join(__dirname, 'public', 'files'),
 
 		// key for api protection
-		apiKey: typeof config.apiKey === 'string' ? config.apiKey : undefined
+		apiKey: typeof config.apiKey === 'string' ? config.apiKey : undefined,
+
+		// enable console log
+		enableLog: config.enableLog !== false,
+
+		// callback
+		callback: typeof callback === 'function' ? callback : undefined
 	};
+
+	// result
+	var result = {};
 
 	// check local file path is exists
 	Fs.accessSync(config.localDirectory);
@@ -288,8 +297,12 @@ const startServer = async config => {
 		}
 	});
 
-	// use logger
-	App.use(KoaLogger());
+	// enable log
+	if (config.enableLog) {
+
+		// use logger
+		App.use(KoaLogger());
+	}
 
 	// use body
 	App.use(KoaBody({
@@ -318,10 +331,31 @@ const startServer = async config => {
 	jobs.push(next => {
 
 		// start server (HTTP)
-		Http.createServer(App.callback()).listen(config.portHttp, () => {
+		var server = Http.createServer(App.callback());
 
-			console.log('HTTP server started at port ' + config.portHttp);
+		// add to result
+		result = {
 
+			...result,
+
+			servers: {
+
+				...result.servers,
+
+				http: server
+			}
+		};
+
+		// listen
+		server.listen(config.portHttp, () => {
+
+			// enable log
+			if (config.enableLog) {
+
+				console.log('HTTP server started at port ' + config.portHttp);
+			}
+
+			// do next
 			return next(undefined);
 		});
 	});
@@ -341,10 +375,31 @@ const startServer = async config => {
 			};
 
 			// start server (HTTPS)
-			Https.createServer(httpsOptions, App.callback()).listen(config.portHttps, () => {
+			var server = Https.createServer(httpsOptions, App.callback());
 
-				console.log('HTTPS server started at port ' + config.portHttps);
+			// add to result
+			result = {
 
+				...result,
+
+				servers: {
+
+					...result.servers,
+
+					https: server
+				}
+			};
+
+			// listen
+			server.listen(config.portHttps, () => {
+
+				// enable log
+				if (config.enableLog) {
+
+					console.log('HTTPS server started at port ' + config.portHttps);
+				}
+
+				// do next
 				return next(undefined);
 			});
 		});
@@ -358,10 +413,22 @@ const startServer = async config => {
 
 			if (err) {
 
-				return reject(err);
+				if (typeof callback === 'function') {
+
+					return config.callback(err);
+				} else {
+
+					return reject(err);
+				}
 			} else {
 
-				return resolve(err);
+				if (typeof callback === 'function') {
+
+					return config.callback(undefined, result);
+				} else {
+
+					return resolve(result);
+				}
 			}
 		});
 	});
