@@ -24,15 +24,15 @@ Start file bucket server.
 // server config
 var config = {
 
-	 portHttp: 80,
+	portHttp: 80,
 	 
-	 portHttps: 443,
-	 
-	 sslKeyFile: 'www.mydomain.com.key',
-	 
-	 sslCertFile: 'www.mydomain.com.cert',
-	 
-	 assetUrl: 'https://www.mydomain.com'
+	portHttps: 443,
+
+	sslKeyFile: 'www.mydomain.com.key',
+
+	sslCertFile: 'www.mydomain.com.cert',
+
+	assetUrl: 'https://www.mydomain.com'
 };
 
 // start server
@@ -59,7 +59,7 @@ API for put file(s) to FBucket server.
 var options = {
 
 	serverUrl: 'http://www.mydomain.com',
-
+	
 	files: 'path_to_file.jpg'
 };
 
