@@ -5,7 +5,7 @@ A Node.js file server and api to help you manage your file assets.
 ## Quickstart - Node.js
 
 ```sh
-npm install fbucket
+$ npm install fbucket
 ```
 
 ## API
